@@ -403,7 +403,7 @@ export default function AboutSection() {
               </p>
 
               <div className="flex items-center gap-3 flex-wrap">
-                {["May 23–24", "Thathoore", "33rd Year"].map((tag) => (
+                {["june 13–14", "Peruvayal", "33rd Year"].map((tag) => (
                   <span
                     key={tag}
                     className="text-[10px] font-semibold tracking-[0.18em] uppercase px-2.5 py-1 rounded-full"

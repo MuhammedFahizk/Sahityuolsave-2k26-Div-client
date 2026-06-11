@@ -147,15 +147,15 @@ export default function AppNav() {
             <div
               className="rounded-md overflow-hidden"
               style={{
-                width: scrolled ? "44px" : "48px",
-                height: scrolled ? "48px" : "50px",
+                width: scrolled ? "34px" : "38px",
+                height: scrolled ? "38px" : "40px",
                
                 transition: "all 0.5s cubic-bezier(0.34,1.1,0.64,1)",
                 flexShrink: 0,
               }}
             >
               <img
-                src="/files/theme.png"
+                src="/files/logo.png"
                 alt="Logo"
                 style={{ width: "100%", height: "100%", objectFit: "contain" }}
               />
@@ -163,7 +163,7 @@ export default function AppNav() {
           </Link>
 
           {/* sahiText — right side */}
-          <Link href="/" aria-label="Sahityotsav home" className="no-underline">
+          <Link href="/" aria-label="Sahityotsav home" className="no-underline flex items-center" style={{ gap: "12px" }}>
             <img
               src="/files/sahiText.png"
               alt="Sahityotsav"
@@ -176,7 +176,24 @@ export default function AppNav() {
                 display: "block",
               }}
             />
+             <div
+              className="rounded-md overflow-hidden"
+              style={{
+                width: scrolled ? "44px" : "48px",
+                height: scrolled ? "48px" : "50px",
+               
+                transition: "all 0.5s cubic-bezier(0.34,1.1,0.64,1)",
+                flexShrink: 0,
+              }}
+            >
+             <img
+                src="/files/theme.png"
+                alt="Logo"
+                style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              />
+              </div>
           </Link>
+          
         </div>
       </header>
 
@@ -284,14 +301,14 @@ export default function AppNav() {
             <div
               style={{
                 width: "30px",
-                height: "42px",
+                height: "38px",
                 flexShrink: 0,
                 transition: "all 0.5s cubic-bezier(0.34,1.1,0.64,1)",
                 transform: scrolled ? "scale(0.88)" : "scale(1)",
               }}
             >
               <img
-                src="/files/theme.png"
+                src="/files/logo.png"
                 alt=""
                 style={{ width: "100%", height: "100%", objectFit: "contain" }}
               />
@@ -358,25 +375,22 @@ export default function AppNav() {
             />
 
             {/* Register CTA */}
-            <Link
-              href="/register"
-              className="inline-flex items-center no-underline shrink-0 font-semibold rounded-[12px] active:scale-[0.97] transition-all duration-300"
+            <div
+              className="rounded-md overflow-hidden"
               style={{
-                fontSize: scrolled ? "12px" : "13px",
-                paddingLeft: scrolled ? "14px" : "18px",
-                paddingRight: scrolled ? "14px" : "18px",
-                paddingTop: scrolled ? "7px" : "9px",
-                paddingBottom: scrolled ? "7px" : "9px",
-                gap: "5px",
-                background: "linear-gradient(135deg, #daf76a 0%, #C8F135 50%, #a8d020 100%)",
-                color: "#050c1a",
-                boxShadow: `0 2px 16px ${GREEN_GLOW}`,
-                letterSpacing: "0.02em",
+                width: scrolled ? "44px" : "48px",
+                height: scrolled ? "48px" : "50px",
+               
+                transition: "all 0.5s cubic-bezier(0.34,1.1,0.64,1)",
+                flexShrink: 0,
               }}
             >
-              Register
-              <ChevronRightIcon />
-            </Link>
+             <img
+                src="/files/theme.png"
+                alt="Logo"
+                style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              />
+              </div>
           </div>
         </div>
       </div>
