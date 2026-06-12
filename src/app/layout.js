@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import NavigationHandler from "@/components/NavigationHandler";
 import Image from "next/image";
+import { Analytics } from '@vercel/analytics/next';
 
 const outfit = Outfit({
   variable: "--font-body",
@@ -171,6 +172,7 @@ export default function RootLayout({ children }) {
           background: "linear-gradient(to bottom, rgba(5,12,26,0.1) 0%, rgba(5,12,26,0.98) 100%)",
         }}/>
         </div>
+        <Analytics />
       </body>
     </html>
   );
