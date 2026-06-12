@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
-import { Feather, Users, Sparkles, BookOpen, Quote, ArrowRight } from "lucide-react";
+import { Feather, Users, Sparkles, BookOpen, Quote, ArrowRight, Flag, MapPin, Calendar } from "lucide-react";
 import Image from "next/image";
 
 /* ── FadeImage ── */
@@ -26,8 +26,9 @@ function FadeImage({ src, alt, width, height, fill, priority, className = "", st
 /* ── Theme tokens ── */
 const GREEN       = "#C8F135";
 const GREEN_DIM   = "rgba(200,241,53,0.55)";
-const GREEN_FAINT = "rgba(200,241,53,0.12)";
-const GREEN_LINE  = "rgba(200,241,53,0.22)";
+const GREEN_FAINT = "rgba(200,241,53,0.10)";
+const GREEN_LINE  = "rgba(200,241,53,0.20)";
+const NAVY        = "#050c1a";
 
 /* ── Stat Card ── */
 const StatCard = ({ number, label, icon: Icon, delay }) => {
@@ -94,34 +95,176 @@ function CircuitDots() {
   );
 }
 
-/* ── Geometric art border strip ── */
-function ArtBorder({ side = "left" }) {
+/* ── Event info pill ── */
+function EventPill({ icon: Icon, text }) {
   return (
     <div
+      className="flex items-center gap-2 px-3 py-1.5 rounded-full"
       style={{
-        position: "absolute",
-        [side]: 0,
-        top: 0,
-        bottom: 0,
-        width: "5px",
-        overflow: "hidden",
-        zIndex: 20,
+        background: GREEN_FAINT,
+        border: `0.5px solid ${GREEN_LINE}`,
       }}
     >
-      <div style={{ position: "relative", width: "5px", height: "100%" }}>
+      <Icon size={10} style={{ color: GREEN }} strokeWidth={2} />
+      <span className="text-[10px] font-semibold tracking-[0.12em] uppercase" style={{ color: GREEN }}>
+        {text}
+      </span>
+    </div>
+  );
+}
+
+/* ── AI Image Panel — the right side creative placement ── */
+function AIImagePanel({ isInView, imgY }) {
+  return (
+    <div className="relative hidden lg:flex items-stretch overflow-hidden">
+
+      {/* Dark fade from left — blends left text panel into image zone */}
+      <div className="absolute inset-0 z-10 pointer-events-none" style={{
+        background: `linear-gradient(105deg, ${NAVY} 0%, rgba(5,12,26,0.60) 35%, rgba(5,12,26,0.10) 100%)`,
+      }}/>
+
+      {/* Subtle green vignette top + bottom */}
+      <div className="absolute inset-0 z-10 pointer-events-none" style={{
+        background: "linear-gradient(to bottom, rgba(5,12,26,0.55) 0%, transparent 30%, transparent 70%, rgba(5,12,26,0.55) 100%)",
+      }}/>
+
+      {/* AI Brain image — full bleed with parallax */}
+      <motion.div style={{ y: imgY }} className="absolute inset-0">
+        {/*
+          The AI brain/Malayalam theme image.
+          Black background image so it naturally bleeds into the dark navy panel.
+          We invert-overlay it with a mix-blend-mode so it integrates organically.
+        */}
+        <div className="absolute inset-0" style={{ background: "#000" }} />
         <Image
-          src="/files/image.png"
-          alt=""
+          src="/files/theme.png"
+          alt="AI Malayalam theme illustration — Sahityotsav 33rd edition"
           fill
           unoptimized
-          style={{ objectFit: "cover", objectPosition: side === "left" ? "left center" : "right center" }}
+          style={{
+            objectFit: "contain",
+            objectPosition: "center",
+            mixBlendMode: "screen",       // black bg disappears, white art glows
+            opacity: 0.82,
+          }}
         />
-        {/* darken overlay */}
-        <div style={{ position: "absolute", inset: 0, background: "rgba(5,12,26,0.35)" }} />
+      </motion.div>
+
+      {/* Green left-edge border strip */}
+      <div className="absolute left-0 top-0 bottom-0 z-20" style={{ width: "1.5px" }}>
+        <div style={{
+          width: "100%", height: "100%",
+          background: `linear-gradient(to bottom, transparent 0%, ${GREEN} 50%, transparent 100%)`,
+          opacity: 0.35,
+        }}/>
+      </div>
+
+      {/* Corner bracket — top left */}
+      <svg className="absolute top-6 left-6 w-10 h-10 z-30" viewBox="0 0 48 48" fill="none"
+        style={{ opacity: 0.45 }}>
+        <path d="M4 20 L4 4 L20 4" stroke={GREEN} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      </svg>
+
+      {/* Corner bracket — bottom right */}
+      <svg className="absolute bottom-6 right-6 w-10 h-10 z-30" viewBox="0 0 48 48" fill="none"
+        style={{ opacity: 0.45 }}>
+        <path d="M44 28 L44 44 L28 44" stroke={GREEN} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      </svg>
+
+      {/* Watermark year */}
+      <div className="absolute top-8 right-8 select-none pointer-events-none z-20"
+        style={{ color: GREEN, opacity: 0.06 }}>
+        <span className="font-bold leading-none"
+          style={{ fontFamily:"Georgia,serif", fontSize:"clamp(3rem,8vw,6rem)" }}>
+          1993
+        </span>
+      </div>
+
+      {/* Bottom info card */}
+      <div className="relative z-20 flex flex-col justify-end p-10 w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7, delay: 0.55 }}
+          className="rounded-2xl p-5"
+          style={{
+            background: "rgba(5,12,26,0.78)",
+            border: `0.5px solid ${GREEN_LINE}`,
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+          }}
+        >
+          {/* shimmer line */}
+          <div style={{
+            height: "1px", marginBottom: "14px",
+            background: `linear-gradient(90deg, transparent, ${GREEN}, transparent)`,
+            opacity: 0.35,
+          }}/>
+
+          {/* Theme name */}
+          <p className="text-[10px] tracking-[0.22em] uppercase font-bold mb-2"
+            style={{ color: GREEN_DIM }}>
+            Sahityolsave 2026's theme
+          </p>
+          <p className="text-sm font-semibold text-white/75 leading-snug mb-4">
+            AI എഴുതുന്നത് മനുഷ്യൻ വായിക്കുന്നത്
+          </p>
+          <p className="text-xs text-white/40 mb-4 leading-relaxed">
+            "What AI writes, humans read" — exploring the boundary between machine intelligence and human expression.
+          </p>
+
+          {/* Event pills */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <EventPill icon={Calendar} text="June 13–14" />
+            <EventPill icon={MapPin}   text="Peruvayal" />
+            <EventPill icon={Flag}     text="33rd Year" />
+          </div>
+        </motion.div>
       </div>
     </div>
   );
 }
+
+/* ── Mobile theme image (below text on small screens) ── */
+function MobileThemeImage({ isInView }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.7, delay: 0.5 }}
+      className="lg:hidden mx-4 mb-8 rounded-2xl overflow-hidden relative"
+      style={{
+        // border: `0.5px solid ${GREEN_LINE}`,
+        // background: "#000",
+        aspectRatio: "4/3",
+      }}
+    >
+      <Image
+        src="/files/theme.png"
+        alt="AI Malayalam theme illustration — Sahityotsav 33rd edition"
+        fill
+        unoptimized
+        style={{
+          objectFit: "contain",
+          mixBlendMode: "screen",
+          opacity: 0.85,
+        }}
+      />
+
+      {/* bottom caption */}
+      <div className="absolute bottom-0 left-0 right-0 px-4 py-3 z-10"
+        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85), transparent)" }}>
+        <p className="text-[10px] tracking-[0.18em] uppercase font-bold" style={{ color: GREEN }}>
+          Sahityotsav 2026's theme
+        </p>
+        <p className="text-xs text-white/65 mt-0.5">
+          AI എഴുതുന്നത് മനുഷ്യൻ വായിക്കുന്നത്
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
 
 /* ════════════════════════════════════════════
    MAIN COMPONENT
@@ -135,40 +278,29 @@ export default function AboutSection() {
     offset: ["start end", "end start"],
   });
   const imgY = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
-  const mY1  = useTransform(scrollYProgress, [0, 1], ["0%", "-10%"]);
-  const mY2  = useTransform(scrollYProgress, [0, 1], ["0%", "8%"]);
 
   return (
     <section
       ref={sectionRef}
       className="relative overflow-hidden"
-      style={{ background: "#050c1a" }}
+      style={{ background: NAVY }}
     >
       {/* circuit dot grid */}
       <CircuitDots />
 
-      {/* blue ambient glows */}
+      {/* ambient glows */}
       <div className="absolute -top-48 -left-36 w-[500px] h-[500px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(ellipse, rgba(30,70,255,0.10) 0%, transparent 70%)" }}/>
-      <div className="absolute -bottom-32 -right-32 w-[400px] h-[400px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(ellipse, rgba(200,241,53,0.05) 0%, transparent 70%)" }}/>
-
-     
-
-      
+        style={{ background: "radial-gradient(ellipse, rgba(30,70,255,0.09) 0%, transparent 70%)" }}/>
+      <div className="absolute -bottom-32 right-0 w-[400px] h-[400px] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(ellipse, rgba(200,241,53,0.04) 0%, transparent 70%)" }}/>
 
       {/* ════════════════════════════════════
           GRID
       ════════════════════════════════════ */}
-      <div className="relative z-10 grid lg:grid-cols-2 min-h-[80vh]">
+      <div className="relative z-10 grid lg:grid-cols-2 min-h-[70vh]">
 
         {/* ── LEFT / TEXT ── */}
-        <div className="relative flex flex-col justify-center px-7 md:px-14 lg:px-16  py-4 lg:py-28 overflow-hidden">
-
-          {/* left art border strip (desktop) */}
-          <div className="hidden lg:block">
-            <ArtBorder side="left" />
-          </div>
+        <div className="relative flex flex-col justify-center px-7 md:px-14 lg:px-16 py-6 lg:py-28 overflow-hidden">
 
           {/* Eyebrow pill */}
           <motion.div
@@ -193,15 +325,15 @@ export default function AboutSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.65, delay: 0.1 }}
-            className="leading-none tracking-tight z-10 font-display text-white text-[40px] sm:text-4xl md:text-5xl lg:text-6xl"
+            className="leading-none -mb-8 tracking-tight z-10 font-display text-white text-[40px] sm:text-4xl md:text-5xl lg:text-6xl"
           >The Story of</motion.h2>
 
-          {/* sahityotsav SVG logo — green filtered */}
+          {/* sahityotsav SVG logo */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.65, delay: 0.18 }}
-            className="self-start z-10"
+            className="self-start z-10 -mb-8"
           >
             <img
               src="/files/sahiText.png"
@@ -262,12 +394,14 @@ export default function AboutSection() {
             </Para>
 
             <Para delay={0.45} strength="28">
-              <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>
-                As a prime aim, Sahityotsav focuses on the embellishment of creativity for thousands of students across India, and has become one of the{" "}
+              <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.50)" }}>
+                Sahityotsav focuses on the embellishment of creativity for thousands of students across India, and has become one of the{" "}
                 <strong style={{ color: "rgba(255,255,255,0.82)" }}>towering figures</strong>{" "}
                 in the realm of India's cultural festivals.
               </p>
             </Para>
+
+           
 
             <Para delay={0.55} strength="14">
               <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
@@ -284,7 +418,7 @@ export default function AboutSection() {
             initial={{ opacity: 0, y: 16 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.65 }}
-            className="grid grid-cols-3 divide-x rounded-2xl overflow-hidden mb-8"
+            className="grid grid-cols-3 divide-x rounded-2xl overflow-hidden "
             style={{
               background: "rgba(200,241,53,0.03)",
               border: `0.5px solid ${GREEN_LINE}`,
@@ -302,7 +436,7 @@ export default function AboutSection() {
             ))}
           </motion.div>
 
-          {/* CTA button */}
+          {/* CTA button
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -315,115 +449,23 @@ export default function AboutSection() {
               style={{
                 padding: "10px 20px",
                 background: "linear-gradient(135deg,#daf76a 0%,#C8F135 50%,#a8d020 100%)",
-                color: "#050c1a",
-                boxShadow: "0 2px 20px rgba(200,241,53,0.22)",
+                color: NAVY,
+                boxShadow: "0 2px 20px rgba(200,241,53,0.18)",
                 letterSpacing: "0.02em",
               }}
             >
               Learn More <ArrowRight size={14} strokeWidth={2.2}/>
             </a>
-          </motion.div>
+          </motion.div> */}
         </div>
 
-        {/* ── RIGHT — art image (desktop) ── */}
-        <div className="relative hidden lg:flex items-stretch overflow-hidden">
-
-          {/* Dark overlay so image doesn't overpower */}
-          <div className="absolute inset-0 z-10" style={{
-            background: "linear-gradient(105deg, rgba(5,12,26,0.88) 0%, rgba(5,12,26,0.45) 40%, rgba(5,12,26,0.15) 100%)",
-          }}/>
-
-          {/* Geometric art image — full bleed */}
-          <motion.div style={{ y: imgY }} className="absolute inset-0">
-            <Image
-              src="/files/image.png"
-              alt="Abstract geometric art"
-              fill
-              unoptimized
-              style={{ objectFit: "cover", objectPosition: "center" }}
-            />
-          </motion.div>
-
-          {/* Green border strip on left edge of right panel */}
-          <div className="absolute left-0 top-0 bottom-0 z-20" style={{ width: "3px" }}>
-            <div style={{
-              width: "100%", height: "100%",
-              background: `linear-gradient(to bottom, transparent, ${GREEN}, transparent)`,
-              opacity: 0.45,
-            }}/>
-          </div>
-
-          {/* Floating content over image */}
-          <div className="relative z-20 flex flex-col justify-end p-10 w-full">
-
-            {/* Watermark year */}
-            <div className="absolute top-8 right-8 select-none pointer-events-none"
-              style={{ color: "#fff", opacity: 0.05 }}>
-              <span className="font-bold leading-none"
-                style={{ fontFamily:"Georgia,serif", fontSize:"clamp(3rem,8vw,6rem)" }}>
-                1993
-              </span>
-            </div>
-
-            {/* Corner bracket — top left */}
-            <svg className="absolute top-6 left-6 w-10 h-10 z-30" viewBox="0 0 48 48" fill="none"
-              style={{ opacity: 0.5 }}>
-              <path d="M4 20 L4 4 L20 4" stroke={GREEN} strokeWidth="1.8" strokeLinecap="round" fill="none"/>
-            </svg>
-
-            {/* Corner bracket — bottom right */}
-            <svg className="absolute bottom-6 right-6 w-10 h-10 z-30" viewBox="0 0 48 48" fill="none"
-              style={{ opacity: 0.5 }}>
-              <path d="M44 28 L44 44 L28 44" stroke={GREEN} strokeWidth="1.8" strokeLinecap="round" fill="none"/>
-            </svg>
-
-            {/* Info card at bottom */}
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.7, delay: 0.5 }}
-              className="rounded-2xl p-5"
-              style={{
-                background: "rgba(5,12,26,0.75)",
-                border: `0.5px solid ${GREEN_LINE}`,
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-              }}
-            >
-              {/* top shimmer */}
-              <div style={{
-                height: "1px", marginBottom: "14px",
-                background: `linear-gradient(90deg,transparent,${GREEN},transparent)`,
-                opacity: 0.4,
-              }}/>
-
-              <p className="text-xs leading-relaxed mb-3" style={{ color: "rgba(255,255,255,0.55)" }}>
-                SSF Mavoor Division's annual celebration of literature, debate and creative expression — 
-                uniting students across Kerala in a festival that has grown into a national movement.
-              </p>
-
-              <div className="flex items-center gap-3 flex-wrap">
-                {["june 13–14", "Peruvayal", "33rd Year"].map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-[10px] font-semibold tracking-[0.18em] uppercase px-2.5 py-1 rounded-full"
-                    style={{
-                      color: GREEN,
-                      background: GREEN_FAINT,
-                      border: `0.5px solid ${GREEN_LINE}`,
-                    }}
-                  >{tag}</span>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        </div>
+        {/* ── RIGHT — AI theme image panel (desktop) ── */}
+        <AIImagePanel isInView={isInView} imgY={imgY} />
       </div>
 
-     
+      {/* ── Mobile theme image strip ── */}
+      <MobileThemeImage isInView={isInView} />
 
-      {/* Bottom divider */}
-    
     </section>
   );
 }
