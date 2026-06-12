@@ -117,7 +117,7 @@ export default function HeroSection() {
           CONTENT — renders immediately
       ══════════════════════════════ */}
       <div
-        className="relative w-full flex flex-col items-center justify-end text-center px-4 pb-12"
+        className="relative w-full flex flex-col items-center justify-end text-center px-4 "
         style={{ minHeight: "100dvh", zIndex: 10, paddingTop: "56px" }}
       >
         {/* Division label */}
@@ -127,8 +127,8 @@ export default function HeroSection() {
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
           className="w-full max-w-[300px] mx-auto -mb-8"
         >
-          <h1 className="text-[14px] uppercase tracking-[0.3em] font-bold font-display text-[rgba(255,255,255,0.65)]">
-            Mavoor Division
+          <h1 className="text-[16px] uppercase tracking-[0.4em] font-display  text-[rgb(254,251,251)]">
+            <span className="text-[28px]">M</span>avoor Divisio<span className="text-[26px]">n</span>
           </h1>
         </motion.div>
 

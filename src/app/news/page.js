@@ -126,10 +126,7 @@ export default function NewsPage() {
 
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-[10px] tracking-[0.28em] uppercase font-semibold mb-1"
-              style={{ color: "rgba(200,241,53,0.6)" }}>
-              SSF · Thathoor Sector
-            </p>
+           
             <h1 className="text-3xl font-display leading-none tracking-tight text-white">
               News
             </h1>

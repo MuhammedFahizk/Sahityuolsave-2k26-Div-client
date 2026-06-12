@@ -447,7 +447,7 @@ export default function ResultsPage() {
           transition={{ duration: 0.3 }}
         >
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold tracking-tight">Results</h1>
+            <h1 className="text-2xl font-display tracking-tight ">Results</h1>
             {!loading && (
               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full
                 bg-white/[0.07] border border-white/[0.07] text-white/35 tabular-nums">

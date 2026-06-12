@@ -260,7 +260,7 @@ function EmptyState({ label, onRetry }) {
       <div className="w-16 h-16 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
         <Trophy size={28} className="text-white/20" />
       </div>
-      <p className="text-sm text-white/50">No {label} teams yet</p>
+      <p className="text-sm text-white/50 ">No {label} teams yet</p>
       {onRetry && (
         <button onClick={onRetry}
           className="mt-5 flex items-center gap-2 text-sm px-4 py-2
@@ -363,7 +363,7 @@ export default function TeamsPage() {
 
       {/* ── Header ── */}
       <div className="px-4 pt-10 pb-1">
-        <h1 className="text-2xl font-bold tracking-tight">Teams</h1>
+        <h1 className="text-2xl font-display tracking-tight">Teams</h1>
         <p className="text-sm text-white/40 mt-0.5">
           {loading ? "Loading…" : `${teams.length} teams · sorted by total points`}
         </p>
