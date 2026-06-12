@@ -398,7 +398,7 @@ export default function AboutSection() {
               }}/>
 
               <p className="text-xs leading-relaxed mb-3" style={{ color: "rgba(255,255,255,0.55)" }}>
-                SSF Thathoor Sector's annual celebration of literature, debate and creative expression — 
+                SSF Mavoor Division's annual celebration of literature, debate and creative expression — 
                 uniting students across Kerala in a festival that has grown into a national movement.
               </p>
 

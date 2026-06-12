@@ -1,38 +1,40 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { get, post, put, del, upload }      from '@/utils/api';
-import Topbar                               from '@/components/admin/Topbar';
-import Spinner                              from '@/components/shared/Spinner';
-import Toast                                from '@/components/shared/Toast';
-import ConfirmModal                         from '@/components/admin/ConfirmModal';
+import { get, post, put, del, upload } from '@/utils/api';
+import Topbar from '@/components/admin/Topbar';
+import Spinner from '@/components/shared/Spinner';
+import Toast from '@/components/shared/Toast';
+import ConfirmModal from '@/components/admin/ConfirmModal';
 
 // ── Empty form state ──
 const emptyForm = {
-  name:         '',
-  description:  '',
-  color:        '#0F4C81',
-  managerName:  '',
+  name: '',
+  description: '',
+  color: '#0F4C81',
+  managerName: '',
   totalMembers: '',
-  totalPoints:  '',
-  logoUrl:      '',
+  totalPoints: '',
+  logoUrl: '',
+  teamType: 'sector',
+  affiliation: '',
 };
 
 export default function AdminTeamsPage() {
-  const [teams,        setTeams]        = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [saving,       setSaving]       = useState(false);
-  const [uploading,    setUploading]    = useState(false);
-  const [toast,        setToast]        = useState(null);
-  const [confirm,      setConfirm]      = useState(null); // { id, name }
-  const [showForm,     setShowForm]     = useState(false);
-  const [editingId,    setEditingId]    = useState(null);
-  const [form,         setForm]         = useState(emptyForm);
-  const [logoPreview,  setLogoPreview]  = useState('');
+  const [teams, setTeams] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [confirm, setConfirm] = useState(null); // { id, name }
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [logoPreview, setLogoPreview] = useState('');
 
   // Points edit inline
   const [editingPoints, setEditingPoints] = useState(null); // teamId
-  const [pointsValue,   setPointsValue]   = useState('');
+  const [pointsValue, setPointsValue] = useState('');
 
   // ── Fetch all teams ──
   const fetchTeams = useCallback(async () => {
@@ -62,13 +64,15 @@ export default function AdminTeamsPage() {
   const openEdit = (team) => {
     setEditingId(team._id);
     setForm({
-      name:         team.name         || '',
-      description:  team.description  || '',
-      color:        team.color        || '#0F4C81',
-      managerName:  team.managerName  || '',
+      name: team.name || '',
+      description: team.description || '',
+      color: team.color || '#0F4C81',
+      managerName: team.managerName || '',
       totalMembers: team.totalMembers || '',
-      totalPoints:  team.totalPoints  || '',
-      logoUrl:      team.logoUrl      || '',
+      totalPoints: team.totalPoints || '',
+      logoUrl: team.logoUrl || '',
+      teamType: team.teamType || 'sector',
+      affiliation: team.affiliation || '',
     });
     setLogoPreview(team.logoUrl || '');
     setShowForm(true);
@@ -116,7 +120,7 @@ export default function AdminTeamsPage() {
       const payload = {
         ...form,
         totalMembers: Number(form.totalMembers) || 0,
-        totalPoints:  Number(form.totalPoints)  || 0,
+        totalPoints: Number(form.totalPoints) || 0,
       };
 
       if (editingId) {
@@ -237,9 +241,9 @@ export default function AdminTeamsPage() {
                   <div className={`w-6 h-6 rounded-md flex items-center
                     justify-center text-[10px] font-medium
                     ${index === 0 ? 'bg-amber-50 text-amber-700'
-                    : index === 1 ? 'bg-gray-100 text-gray-500'
-                    : index === 2 ? 'bg-orange-50 text-orange-600'
-                    : 'bg-blue-50 text-blue-600'}`}>
+                      : index === 1 ? 'bg-gray-100 text-gray-500'
+                        : index === 2 ? 'bg-orange-50 text-orange-600'
+                          : 'bg-blue-50 text-blue-600'}`}>
                     {index + 1}
                   </div>
                 </div>
@@ -419,6 +423,45 @@ export default function AdminTeamsPage() {
                     text-[13px] resize-none focus:outline-none
                     focus:border-[#0F4C81] focus:ring-2
                     focus:ring-[#0F4C81]/10 transition-all" />
+              </div>
+              {/* Team Type + Affiliation in a row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-medium text-gray-400
+      uppercase tracking-wider mb-1.5 block">
+                    Team Type *
+                  </label>
+                  <select
+                    value={form.teamType}
+                    onChange={e => setField('teamType', e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200
+        text-[12px] text-gray-700 focus:outline-none focus:border-[#0F4C81]
+        focus:ring-2 focus:ring-[#0F4C81]/10 transition-all bg-white
+        appearance-none cursor-pointer"
+                  >
+                    <option value="sector">Sector</option>
+                    <option value="campus">Campus</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] font-medium text-gray-400
+      uppercase tracking-wider mb-1.5 block">
+                    {form.teamType === 'campus' ? 'Campus Name' : 'Sector Name'}
+                  </label>
+                  <input
+                    type="text"
+                    value={form.affiliation}
+                    onChange={e => setField('affiliation', e.target.value)}
+                    placeholder={
+                      form.teamType === 'campus'
+                        ? 'e.g. MES College'
+                        : 'e.g. Thathoor Sector'
+                    }
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200
+        text-[12px] focus:outline-none focus:border-[#0F4C81]
+        focus:ring-2 focus:ring-[#0F4C81]/10 transition-all"
+                  />
+                </div>
               </div>
 
               {/* Color + Manager in a row */}

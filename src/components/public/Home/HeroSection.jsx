@@ -79,7 +79,7 @@ export default function HeroSection() {
       {/* ── BG poster (parallax, fades in on load) ── */}
       <motion.div
         style={{ y: bgY }}
-        className="absolute inset-0 -mt-15 w-full h-[100%]"
+        className="absolute inset-0 -mt-15 w-full h-[110%]"
         aria-hidden
       >
         <motion.div
@@ -101,7 +101,6 @@ export default function HeroSection() {
         </motion.div>
       </motion.div>
 
-      <CircuitOverlay />
 
       {/* ── top fade into nav ── */}
       <div
@@ -113,16 +112,6 @@ export default function HeroSection() {
         }}
       />
 
-      {/* ── bottom fade ── */}
-      <div
-        className="absolute bottom-0 left-0 right-0 pointer-events-none"
-        style={{
-          height: "12%",
-          background:
-            "linear-gradient(to top, #050c1a 0%, #050c1a 28%, rgba(5,12,26,0.9) 50%, transparent 100%)",
-          zIndex: 4,
-        }}
-      />
 
       {/* ══════════════════════════════
           CONTENT — renders immediately

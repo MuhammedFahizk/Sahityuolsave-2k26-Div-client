@@ -157,7 +157,7 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-[11px] text-gray-300 mt-6">
-            SSF Thathoor Sector · Festival 2026
+            SSF Mavoor Division · Sahityolsavam 2026
           </p>
         </div>
       </div>

@@ -2,36 +2,114 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy,
-  
   ChevronRight,
   RefreshCw,
   Crown,
   AlertCircle,
+  MapPin,
+  GraduationCap,
 } from "lucide-react";
 
 import BottomSheet from "@/components/ui/BottomSheet";
 import { get } from "@/utils/api";
 import TeamSheetContent from "@/components/public/Team/Teamsheetcontent";
 
-// ── Position medal helpers ───────────────────────────────────────────────────
+// ── Rank meta ────────────────────────────────────────────────────────────────
 
 const RANK_META = {
-  1: { label: "1st", bg: "bg-amber-400/10", text: "text-amber-400", ring: "ring-amber-400/30", dot: "#F59E0B" },
-  2: { label: "2nd", bg: "bg-slate-400/10", text: "text-slate-300", ring: "ring-slate-400/30", dot: "#94A3B8" },
-  3: { label: "3rd", bg: "bg-orange-700/10", text: "text-orange-400", ring: "ring-orange-700/30", dot: "#C2410C" },
+  1: { label: "1st", bg: "bg-amber-400/10",   text: "text-amber-400",  ring: "ring-amber-400/30",  dot: "#F59E0B" },
+  2: { label: "2nd", bg: "bg-slate-400/10",   text: "text-slate-300",  ring: "ring-slate-400/30",  dot: "#94A3B8" },
+  3: { label: "3rd", bg: "bg-orange-700/10",  text: "text-orange-400", ring: "ring-orange-700/30", dot: "#C2410C" },
 };
 
 function rankMeta(rank) {
   return RANK_META[rank] || {
     label: `${rank}th`,
-    bg: "bg-white/5",
+    bg:   "bg-white/5",
     text: "text-white/40",
     ring: "ring-white/10",
-    dot: "#ffffff22",
+    dot:  "#ffffff22",
   };
+}
+
+// ── Tab config ───────────────────────────────────────────────────────────────
+
+const TABS = [
+  {
+    key:   "sector",
+    label: "Sector",
+    Icon:  MapPin,
+    // active pill gradient
+    gradient: "from-emerald-500/20 to-teal-500/20",
+    border:   "border-emerald-500/30",
+    text:     "text-emerald-300",
+    dot:      "bg-emerald-400",
+  },
+  {
+    key:   "campus",
+    label: "Campus",
+    Icon:  GraduationCap,
+    gradient: "from-violet-500/20 to-indigo-500/20",
+    border:   "border-violet-500/30",
+    text:     "text-violet-300",
+    dot:      "bg-violet-400",
+  },
+];
+
+// ── Type pill (shown in leaderboard rows) ─────────────────────────────────────
+
+function TypePill({ type }) {
+  const cfg = type === "campus"
+    ? { label: "Campus", cls: "bg-violet-500/10 text-violet-400 border-violet-500/20" }
+    : { label: "Sector", cls: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" };
+  return (
+    <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${cfg.cls}`}>
+      {cfg.label}
+    </span>
+  );
+}
+
+// ── Segment switcher ─────────────────────────────────────────────────────────
+
+function TypeSwitcher({ active, onChange, counts }) {
+  return (
+    <div className="flex gap-2 px-4 pt-3 pb-1">
+      {TABS.map((tab) => {
+        const isActive = active === tab.key;
+        return (
+          <button
+            key={tab.key}
+            onClick={() => onChange(tab.key)}
+            className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold
+              border transition-all duration-200 focus:outline-none flex-1 justify-center
+              ${isActive
+                ? `bg-gradient-to-r ${tab.gradient} ${tab.border} ${tab.text}`
+                : "bg-white/[0.04] border-white/10 text-white/40 hover:text-white/60 hover:bg-white/[0.07]"
+              }`}
+          >
+            <tab.Icon size={13} />
+            {tab.label}
+            {counts[tab.key] != null && (
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium
+                ${isActive ? "bg-white/10 text-white/70" : "bg-white/[0.06] text-white/30"}`}>
+                {counts[tab.key]}
+              </span>
+            )}
+            {/* Active indicator dot */}
+            {isActive && (
+              <motion.span
+                layoutId="tab-dot"
+                className={`absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${tab.dot}`}
+              />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 // ── Podium ───────────────────────────────────────────────────────────────────
@@ -43,83 +121,58 @@ function PodiumItem({ team, rank, onClick }) {
   return (
     <button
       onClick={() => onClick(team, rank)}
-      className={`flex flex-col items-center gap-2  flex-1 transition-transform active:scale-95 focus:outline-none`}
+      className="flex flex-col items-center gap-2 flex-1 transition-transform active:scale-95 focus:outline-none"
     >
-      {/* Crown for rank 1 */}
-      {isFirst && (
-        <Crown size={18} className="text-amber-400 mb-0.5" />
-      )}
+      {isFirst && <Crown size={18} className="text-amber-400 mb-0.5" />}
 
-      {/* Avatar */}
       <div
-        className={`relative flex items-center justify-center rounded-full ring-2 ${meta.ring} transition-shadow
+        className={`relative flex items-center justify-center rounded-full ring-2 ${meta.ring}
           ${isFirst ? "w-[72px] h-[72px] text-2xl" : "w-[58px] h-[58px] text-xl"}`}
         style={{ backgroundColor: (team.color || "#888") + "25" }}
       >
         {team.logoUrl ? (
-          <img
-            src={team.logoUrl}
-            alt={team.name}
-            className="w-full h-full rounded-full object-cover"
-          />
+          <img src={team.logoUrl} alt={team.name}
+            className="w-full h-full rounded-full object-cover" />
         ) : (
-          <span
-            className="font-bold leading-none"
-            style={{ color: team.color || "#888" }}
-          >
+          <span className="font-bold leading-none" style={{ color: team.color || "#888" }}>
             {team.name.charAt(0)}
           </span>
         )}
-
-        {/* Rank badge */}
-        <span
-          className={`absolute -bottom-1.5 -right-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${meta.bg} ${meta.text} ring-1 ${meta.ring}`}
-        >
+        <span className={`absolute -bottom-1.5 -right-1.5 text-[10px] font-bold
+          px-1.5 py-0.5 rounded-full ${meta.bg} ${meta.text} ring-1 ${meta.ring}`}>
           {meta.label}
         </span>
       </div>
 
-      {/* Name */}
       <span className="text-xs font-semibold text-white/80 text-center leading-tight max-w-[80px] line-clamp-2">
         {team.name}
       </span>
-
-      {/* Points */}
       <span className={`text-[11px] font-bold tabular-nums ${meta.text}`}>
         {team.totalPoints.toLocaleString()} pts
       </span>
-
-      {/* Podium base */}
-      <div
-        className={`w-full rounded-t-md ${meta.bg} border-t border-white/10
-          ${isFirst ? "h-10" : "h-6"}`}
-      />
+      <div className={`w-full rounded-t-md ${meta.bg} border-t border-white/10
+        ${isFirst ? "h-10" : "h-6"}`} />
     </button>
   );
 }
 
 function Podium({ top3, onTeamClick }) {
-  if (top3.length < 3) return null;
-
-  // Display order: 2nd | 1st | 3rd
+  if (top3.length < 3) {
+    // Fewer than 3: just show as plain rows, no podium
+    return null;
+  }
   const order = [top3[1], top3[0], top3[2]];
   const ranks = [2, 1, 3];
-
   return (
-    <div className="flex items-end gap-3 px-4 pt-6 pb-0">
+    <div className="flex items-end gap-3 px-4 pt-4 pb-0">
       {order.map((team, i) => (
-        <PodiumItem
-          key={team._id}
-          team={team}
-          rank={ranks[i]}
-          onClick={onTeamClick}
-        />
+        <PodiumItem key={team._id} team={team} rank={ranks[i]} onClick={onTeamClick} />
       ))}
     </div>
   );
 }
 
-// ── Leaderboard Row ──────────────────────────────────────────────────────────
+// ── Leaderboard row ──────────────────────────────────────────────────────────
 
 const ROW_TINTS = {
   1: "bg-amber-400/[0.05]",
@@ -129,41 +182,30 @@ const ROW_TINTS = {
 
 function TeamRow({ team, rank, onClick }) {
   const meta = rankMeta(rank);
-  const tint = ROW_TINTS[rank] || "";
-
   return (
     <button
       onClick={() => onClick(team, rank)}
-      className={`w-full flex items-center gap-4 px-4 py-3.5 ${tint} border-b border-white/[0.05]
+      className={`w-full flex items-center gap-4 px-4 py-3.5
+        ${ROW_TINTS[rank] || ""} border-b border-white/[0.05]
         hover:bg-white/[0.04] active:bg-white/[0.07] transition-colors text-left focus:outline-none`}
     >
-      {/* Rank number */}
       <span className={`w-6 text-sm font-bold tabular-nums ${meta.text} flex-shrink-0`}>
         {rank}
       </span>
-
-      {/* Color dot / avatar */}
       <div
         className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
-        style={{
-          backgroundColor: (team.color || "#888") + "28",
-          color: team.color || "#888",
-        }}
+        style={{ backgroundColor: (team.color || "#888") + "28", color: team.color || "#888" }}
       >
         {team.logoUrl ? (
           <img src={team.logoUrl} alt={team.name} className="w-full h-full rounded-full object-cover" />
-        ) : (
-          team.name.charAt(0)
-        )}
+        ) : team.name.charAt(0)}
       </div>
-
-      {/* Name + manager */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-white/90 truncate">{team.name}</p>
-        {/* <p className="text-[11px] text-white/40 truncate">{team.managerName}</p> */}
+        {team.affiliation && (
+          <p className="text-[10px] text-white/30 truncate mt-0.5">{team.affiliation}</p>
+        )}
       </div>
-
-      {/* Points */}
       <div className="flex items-center gap-2 flex-shrink-0">
         <span className={`text-sm font-bold tabular-nums ${meta.text}`}>
           {team.totalPoints.toLocaleString()}
@@ -182,10 +224,8 @@ function PodiumSkeleton() {
     <div className="flex items-end gap-3 px-4 pt-6 pb-0">
       {[58, 72, 58].map((size, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-2">
-          <div
-            className="rounded-full bg-white/[0.07] animate-pulse"
-            style={{ width: size, height: size }}
-          />
+          <div className="rounded-full bg-white/[0.07] animate-pulse"
+            style={{ width: size, height: size }} />
           <div className="h-2 w-14 rounded bg-white/[0.07] animate-pulse" />
           <div className="h-2 w-10 rounded bg-white/[0.07] animate-pulse" />
           <div className={`w-full rounded-t-md bg-white/[0.04] animate-pulse ${i === 1 ? "h-10" : "h-6"}`} />
@@ -209,29 +249,23 @@ function RowSkeleton() {
   );
 }
 
-// ── Empty State ──────────────────────────────────────────────────────────────
+// ── Empty / Error states ─────────────────────────────────────────────────────
 
-function EmptyState({ onRetry }) {
+function EmptyState({ label, onRetry }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="flex flex-col items-center justify-center py-20 px-6 text-center"
+      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center py-16 px-6 text-center"
     >
-      <div className="w-20 h-20 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
-        <Trophy size={36} className="text-white/20" />
+      <div className="w-16 h-16 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
+        <Trophy size={28} className="text-white/20" />
       </div>
-      <h3 className="text-lg font-semibold text-white/70 mb-1">No teams yet</h3>
-      <p className="text-sm text-white/40 max-w-[220px]">
-        Teams will appear here once they join the league
-      </p>
+      <p className="text-sm text-white/50">No {label} teams yet</p>
       {onRetry && (
-        <button
-          onClick={onRetry}
-          className="mt-6 flex items-center gap-2 text-sm px-4 py-2 rounded-xl bg-white/[0.07] hover:bg-white/[0.12] transition-colors"
-        >
-          <RefreshCw size={14} /> Refresh
+        <button onClick={onRetry}
+          className="mt-5 flex items-center gap-2 text-sm px-4 py-2
+            rounded-xl bg-white/[0.07] hover:bg-white/[0.12] transition-colors">
+          <RefreshCw size={13} /> Refresh
         </button>
       )}
     </motion.div>
@@ -241,43 +275,39 @@ function EmptyState({ onRetry }) {
 function ErrorState({ message, onRetry }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="flex flex-col items-center justify-center py-20   px-6 text-center"
+      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center py-16 px-6 text-center"
     >
-      <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
-        <AlertCircle size={36} className="text-red-400/60" />
+      <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+        <AlertCircle size={28} className="text-red-400/60" />
       </div>
-      <h3 className="text-lg font-semibold text-white/70 mb-1">Failed to load</h3>
-      <p className="text-sm text-white/40 max-w-[260px]">{message}</p>
-      <button
-        onClick={onRetry}
-        className="mt-6 flex items-center gap-2 text-sm px-5 py-2.5 rounded-xl bg-white/[0.07] hover:bg-white/[0.12] transition-colors"
-      >
-        <RefreshCw size={14} /> Try again
+      <p className="text-sm text-white/50">{message}</p>
+      <button onClick={onRetry}
+        className="mt-5 flex items-center gap-2 text-sm px-5 py-2.5
+          rounded-xl bg-white/[0.07] hover:bg-white/[0.12] transition-colors">
+        <RefreshCw size={13} /> Try again
       </button>
     </motion.div>
   );
 }
 
-// ── Main Page ────────────────────────────────────────────────────────────────
+// ── Main page ────────────────────────────────────────────────────────────────
 
 export default function TeamsPage() {
   const router = useRouter();
 
-  const [teams, setTeams] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [teams,          setTeams]          = useState([]);
+  const [loading,        setLoading]        = useState(true);
+  const [error,          setError]          = useState(null);
+  const [activeTab,      setActiveTab]      = useState("sector");
 
-  // Bottom sheet state
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [activeTeam, setActiveTeam] = useState(null);
-  const [activeRank, setActiveRank] = useState(null);
-  const [teamResults, setTeamResults] = useState([]);
+  const [sheetOpen,      setSheetOpen]      = useState(false);
+  const [activeTeam,     setActiveTeam]     = useState(null);
+  const [activeRank,     setActiveRank]     = useState(null);
+  const [teamResults,    setTeamResults]    = useState([]);
   const [resultsLoading, setResultsLoading] = useState(false);
 
-  // ── Fetch teams list ──
+  // ── Fetch ──
   const fetchTeams = useCallback(async () => {
     try {
       setLoading(true);
@@ -293,23 +323,18 @@ export default function TeamsPage() {
 
   useEffect(() => { fetchTeams(); }, [fetchTeams]);
 
-  // ── Fetch results for a specific team ──
   const fetchTeamResults = useCallback(async (teamId) => {
     try {
       setResultsLoading(true);
-      // Use pagination params to fetch all results (or at least more than default)
       const res = await get(`/api/results/public/?teamId=${teamId}&page=1&limit=2`);
-      console.log("Fetched team results:", res);
       setTeamResults(res.data || []);
-    } catch (err) {
-      console.log("Failed to load team results", err);
+    } catch {
       setTeamResults([]);
     } finally {
       setResultsLoading(false);
     }
   }, []);
 
-  // ── Open sheet ──
   const handleTeamClick = useCallback((team, rank) => {
     setActiveTeam(team);
     setActiveRank(rank);
@@ -318,30 +343,36 @@ export default function TeamsPage() {
     fetchTeamResults(team._id);
   }, [fetchTeamResults]);
 
-  // ── Navigate to full detail page ──
   const handleViewDetail = useCallback((id) => {
     setSheetOpen(false);
     router.push(`/teams/${id}`);
   }, [router]);
 
-  const closeSheet = useCallback(() => {
-    setSheetOpen(false);
-  }, []);
+  // ── Derived lists — already sorted by totalPoints from API ──
+  const sectorTeams = teams.filter(t => (t.teamType || "sector") === "sector");
+  const campusTeams = teams.filter(t => t.teamType === "campus");
 
-  // Derive podium and list
-  const top3 = teams.slice(0, 3);
-  const rest = teams.slice(3);
+  const counts = { sector: sectorTeams.length, campus: campusTeams.length };
 
-  // ── Render ──
+  const visibleTeams = activeTab === "sector" ? sectorTeams : campusTeams;
+  const top3         = visibleTeams.slice(0, 3);
+  const activeTabCfg = TABS.find(t => t.key === activeTab);
+
   return (
     <div className="min-h-screen pt-10 bg-[#080808] text-white">
+
       {/* ── Header ── */}
-      <div className="px-4 pt-10 pb-2">
+      <div className="px-4 pt-10 pb-1">
         <h1 className="text-2xl font-bold tracking-tight">Teams</h1>
         <p className="text-sm text-white/40 mt-0.5">
           {loading ? "Loading…" : `${teams.length} teams · sorted by total points`}
         </p>
       </div>
+
+      {/* ── Switcher ── */}
+      {!loading && !error && teams.length > 0 && (
+        <TypeSwitcher active={activeTab} onChange={setActiveTab} counts={counts} />
+      )}
 
       {/* ── Content ── */}
       {loading ? (
@@ -353,38 +384,52 @@ export default function TeamsPage() {
         </>
       ) : error ? (
         <ErrorState message={error} onRetry={fetchTeams} />
-      ) : teams.length === 0 ? (
-        <EmptyState onRetry={fetchTeams} />
       ) : (
-        <>
-          {/* Podium */}
-          <Podium top3={top3} onTeamClick={handleTeamClick} />
-
-          {/* Divider */}
-          <div className="mx-4 mt-6 mb-0 border-t border-white/[0.07]" />
-
-          {/* Full leaderboard */}
+        <AnimatePresence mode="wait">
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.15 }}
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22 }}
           >
-            {teams.map((team, i) => (
-              <TeamRow
-                key={team._id}
-                team={team}
-                rank={i + 1}
-                onClick={handleTeamClick}
-              />
-            ))}
+            {visibleTeams.length === 0 ? (
+              <EmptyState label={activeTabCfg.label} onRetry={fetchTeams} />
+            ) : (
+              <>
+                {/* Section label */}
+                <div className={`mx-4 mt-3 mb-1 flex items-center gap-2
+                  text-[11px] font-semibold uppercase tracking-widest ${activeTabCfg.text}`}>
+                  <activeTabCfg.Icon size={11} />
+                  {activeTabCfg.label} Leaderboard
+                </div>
+
+                {/* Podium — only if 3+ teams */}
+                {top3.length >= 3 && (
+                  <Podium top3={top3} onTeamClick={handleTeamClick} />
+                )}
+
+                <div className="mx-4 mt-5 mb-0 border-t border-white/[0.07]" />
+
+                {/* Full list */}
+                {visibleTeams.map((team, i) => (
+                  <TeamRow
+                    key={team._id}
+                    team={team}
+                    rank={i + 1}
+                    onClick={handleTeamClick}
+                  />
+                ))}
+              </>
+            )}
           </motion.div>
-        </>
+        </AnimatePresence>
       )}
 
-      {/* ── Reusable Bottom Sheet ── */}
+      {/* ── Bottom Sheet ── */}
       <BottomSheet
         isOpen={sheetOpen}
-        onClose={closeSheet}
+        onClose={() => setSheetOpen(false)}
         accentColor={activeTeam?.color}
         showHandle
       >
