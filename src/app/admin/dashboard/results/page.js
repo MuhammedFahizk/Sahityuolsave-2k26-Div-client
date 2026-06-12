@@ -12,7 +12,7 @@ const emptyEntry = { position: '', participantName: '', teamId: '', points: '', 
 const emptyForm = { resultNumber: '', categoryName: '', group: '', entries: [{ ...emptyEntry }] };
 
 // ── Group options ──
-const GROUP_OPTIONS = ['High School', 'Junior', 'Senior',  'Lower Primary', 'General', 'Upper Primary', 'Higher Secondary', 'General Category-A', 'General Category-B'];
+const GROUP_OPTIONS = ['High School', 'Junior', 'Senior', 'Lower Primary', 'General', 'Upper Primary', 'Higher Secondary', 'General Category-A', 'General Category-B', 'Campus'];
 
 // ── Group color pills ──
 const groupStyle = (group) => {
@@ -24,8 +24,9 @@ const groupStyle = (group) => {
     'senior': 'bg-amber-50 text-amber-700 border-amber-100',
     'higher secondary': 'bg-green-50 text-green-700 border-green-100',
     'general category-a': 'bg-purple-50 text-purple-700 border-purple-100',
-    ' general category-b': 'bg-purple-50 text-purple-700 border-purple-100',
-      'general': 'bg-purple-50 text-purple-700 border-purple-100',
+    'general category-b': 'bg-purple-50 text-purple-700 border-purple-100',
+    'general': 'bg-purple-50 text-purple-700 border-purple-100',
+    "campus": 'bg-gray-50 text-gray-500 border-gray-100',
   };
   return map[group?.toLowerCase()] || 'bg-gray-50 text-gray-500 border-gray-100';
 };
@@ -603,7 +604,12 @@ export default function AdminResultsPage() {
                             text-[12px] bg-white focus:outline-none
                             focus:border-[#0F4C81] transition-all">
                           <option value="">Select team</option>
-                          {teams.map(team => (
+                          {teams
+                            .filter(t => {
+                              const isCampus = form.group?.toLowerCase() === 'campus';
+                              return isCampus ? t.teamType === 'campus' : t.teamType !== 'campus';
+                            })
+                            .map(team => (
                             <option key={team._id} value={team._id}>
                               {team.name}
                             </option>
