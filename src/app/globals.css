@@ -38,7 +38,7 @@
 }
 
 @theme inline {
-  --font-display:         var(--font-luckiest);
+  --font-display:         var(--font-pixelify-bold);
   --font-display-cursive: var(--font-leckerli);
 }
 

@@ -29,14 +29,48 @@ function getPositionDisplay(p) {
   return `#${p}`;
 }
 
-// ── Shared canvas draw helper ─────────────────────────────────────────────────
-// Uses EXACTLY the same logic as AdminTemplatesPage drawPreview
-// so that admin-set x/y values match pixel-perfectly on the public side.
+// ── Shared canvas helpers ─────────────────────────────────────────────────────
+// MUST stay identical to admin-templates-page.jsx resolveX + drawWinnersOnCtx
 
 function resolveX(align, x, canvasWidth) {
   if (align === "center") return canvasWidth / 2;
   if (align === "right")  return canvasWidth - x;
   return x; // left
+}
+
+/**
+ * Draw winners block: for each winner, draws
+ *   Line 1 (Y = slotY):           "position. participantName"   — w.color, w.fontSize, bold
+ *   Line 2 (Y = slotY + lineGap): "teamName"                    — w.teamColor, w.teamFontSize, normal
+ * Slots are spaced w.gapY apart.
+ */
+function drawWinnersOnCtx(ctx, w, entries, canvasWidth) {
+  if (!w || !entries?.length) return;
+  const sorted = [...entries].sort((a, b) => a.position - b.position);
+  sorted.forEach((winner, i) => {
+    const slotY = w.startY + i * (w.gapY || 80);
+    const nameX = resolveX(w.textAlign, w.startX, canvasWidth);
+    // Participant name
+    ctx.save();
+    ctx.font         = `bold ${w.fontSize || 28}px "Poppins", "Segoe UI", system-ui`;
+    ctx.fillStyle    = w.color || "#FFD700";
+    ctx.textAlign    = w.textAlign || "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText(`${winner.position}. ${winner.participantName}`, nameX, slotY);
+    ctx.restore();
+
+    // Team name
+    const teamName = winner.teamId?.name || winner.team || "shdfhsoef";
+    if (teamName) {
+      ctx.save();
+      ctx.font         = `normal ${w.teamFontSize || 20}px "Poppins", "Segoe UI", system-ui`;
+      ctx.fillStyle    = w.teamColor || "#ffffff";
+      ctx.textAlign    = w.textAlign || "center";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText(teamName, nameX, slotY + (w.lineGap || 28));
+      ctx.restore();
+    }
+  });
 }
 
 async function loadImg(src) {
@@ -57,18 +91,16 @@ export async function generatePosterOnCanvas(template, result) {
   const ctx     = canvas.getContext("2d");
   const W       = canvas.width;
 
-  // Draw background
+  // Background
   ctx.drawImage(bgImage, 0, 0, W, canvas.height);
-
-  // ── textBaseline: 'alphabetic' — matches admin drawPreview default ──
 
   // Result Number
   const rn = template.resultNumber;
   if (rn) {
     ctx.save();
-    ctx.font      = `${rn.fontWeight || "normal"} ${rn.fontSize || 40}px "Poppins", "Segoe UI", system-ui`;
-    ctx.fillStyle = rn.color || "#ffffff";
-    ctx.textAlign = rn.textAlign || "left";
+    ctx.font         = `${rn.fontWeight || "normal"} ${rn.fontSize || 40}px "Poppins", "Segoe UI", system-ui`;
+    ctx.fillStyle    = rn.color || "#ffffff";
+    ctx.textAlign    = rn.textAlign || "left";
     ctx.textBaseline = "alphabetic";
     ctx.fillText(
       String(result.resultNumber).padStart(2, "0"),
@@ -82,9 +114,9 @@ export async function generatePosterOnCanvas(template, result) {
   const cn = template.categoryName;
   if (cn) {
     ctx.save();
-    ctx.font      = `${cn.fontWeight || "normal"} ${cn.fontSize || 32}px "Poppins", "Segoe UI", system-ui`;
-    ctx.fillStyle = cn.color || "#ffffff";
-    ctx.textAlign = cn.textAlign || "left";
+    ctx.font         = `${cn.fontWeight || "normal"} ${cn.fontSize || 32}px "Poppins", "Segoe UI", system-ui`;
+    ctx.fillStyle    = cn.color || "#ffffff";
+    ctx.textAlign    = cn.textAlign || "left";
     ctx.textBaseline = "alphabetic";
     ctx.fillText(
       result.categoryName || "",
@@ -98,9 +130,9 @@ export async function generatePosterOnCanvas(template, result) {
   const gr = template.group;
   if (gr && result.group) {
     ctx.save();
-    ctx.font      = `${gr.fontWeight || "normal"} ${gr.fontSize || 24}px "Poppins", "Segoe UI", system-ui`;
-    ctx.fillStyle = gr.color || "#ffffff";
-    ctx.textAlign = gr.textAlign || "left";
+    ctx.font         = `${gr.fontWeight || "normal"} ${gr.fontSize || 24}px "Poppins", "Segoe UI", system-ui`;
+    ctx.fillStyle    = gr.color || "#ffffff";
+    ctx.textAlign    = gr.textAlign || "left";
     ctx.textBaseline = "alphabetic";
     ctx.fillText(
       result.group,
@@ -110,25 +142,9 @@ export async function generatePosterOnCanvas(template, result) {
     ctx.restore();
   }
 
-  // Winners — all entries sorted by position
-  const w = template.winners;
-  if (w) {
-    const sorted = [...(result.entries || [])].sort((a, b) => a.position - b.position);
-    sorted.forEach((entry, i) => {
-      ctx.save();
-      ctx.font      = `${w.fontSize || 28}px "Poppins", "Segoe UI", system-ui`;
-      ctx.fillStyle = w.color || "#FFD700";
-      ctx.textAlign = w.textAlign || "left";
-      ctx.textBaseline = "alphabetic";
-      ctx.fillText(
-        `${entry.position}. ${entry.participantName}`,
-        resolveX(w.textAlign, w.startX, W),
-        w.startY + i * (w.gapY || 60)
-      );
-      ctx.restore();
-    });
-  }
-
+  // Winners — name + team stacked (shared helper)
+  drawWinnersOnCtx(ctx, template.winners, result.entries, W);
+  console.log("Poster " , template.winners)
   return canvas;
 }
 
@@ -179,7 +195,7 @@ function GeneratedPoster({ dataUrl, onDownload, onShare, downloading, sharing })
   return (
     <div className="space-y-2">
       <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider">
-        Result Poster
+        Result Poster 
       </h3>
       <div className="relative rounded-xl overflow-hidden border border-white/[0.08] bg-white/[0.02]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -212,11 +228,11 @@ function GeneratedPoster({ dataUrl, onDownload, onShare, downloading, sharing })
 // ── Main Sheet ────────────────────────────────────────────────────────────────
 
 export default function ResultDetailSheet({ result, isOpen, onClose }) {
+
   const [shareSuccess,    setShareSuccess]    = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [imageError,      setImageError]      = useState(false);
 
-  // Template state
   const [templates,        setTemplates]        = useState([]);
   const [templatesLoading, setTemplatesLoading] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -229,7 +245,6 @@ export default function ResultDetailSheet({ result, isOpen, onClose }) {
   const hasServerImage = result?.resultUrl && result.resultUrl.trim() !== "" && !imageError;
   const needsTemplate  = result && !hasServerImage;
 
-  // Reset on result change
   useEffect(() => {
     setImageError(false);
     setGeneratedDataUrl(null);
@@ -237,7 +252,6 @@ export default function ResultDetailSheet({ result, isOpen, onClose }) {
     setSelectedTemplate(null);
   }, [result?._id]);
 
-  // Fetch active templates only when needed
   useEffect(() => {
     if (!isOpen || !needsTemplate || templates.length > 0) return;
     setTemplatesLoading(true);
@@ -251,7 +265,6 @@ export default function ResultDetailSheet({ result, isOpen, onClose }) {
       .finally(() => setTemplatesLoading(false));
   }, [isOpen, needsTemplate]); // eslint-disable-line
 
-  // Auto-generate when template selected
   useEffect(() => {
     if (!selectedTemplate || !result) return;
     setGenerating(true);
@@ -318,7 +331,6 @@ export default function ResultDetailSheet({ result, isOpen, onClose }) {
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: result.categoryName });
       } else {
-        // fallback: download
         const url = URL.createObjectURL(blob);
         const a   = Object.assign(document.createElement("a"), { href: url, download: file.name });
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
@@ -411,7 +423,7 @@ export default function ResultDetailSheet({ result, isOpen, onClose }) {
                 <p className="text-sm font-medium text-white/70">{formatDate(result.createdAt)}</p>
               </div>
 
-              {/* ── POSTER SECTION (always first, server or template) ── */}
+              {/* ── POSTER SECTION ── */}
 
               {/* Case 1: Server image */}
               {hasServerImage && (
@@ -508,7 +520,7 @@ export default function ResultDetailSheet({ result, isOpen, onClose }) {
                 </div>
               )}
 
-              {/* ── TOP PERFORMERS (always after poster) ── */}
+              {/* ── TOP PERFORMERS ── */}
               {topEntries.length > 0 && (
                 <div className="space-y-3">
                   <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider">
@@ -536,16 +548,18 @@ export default function ResultDetailSheet({ result, isOpen, onClose }) {
                               {getPositionDisplay(entry.position)}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <p className="font-semibold text-white/90 truncate">{entry.participantName}</p>
-                                {entry.teamId?.color && (
-                                  <div className="w-2 h-2 rounded-full flex-shrink-0"
-                                    style={{ backgroundColor: entry.teamId.color }} />
-                                )}
-                                {entry.teamId?.name && (
-                                  <span className="text-[10px] text-white/40 truncate">{entry.teamId.name}</span>
-                                )}
-                              </div>
+                              <p className="font-semibold text-white/90 truncate">{entry.participantName}</p>
+                              {entry.teamId?.name && (
+                                <p className="text-[11px] text-white/40 truncate mt-0.5">
+                                  {entry.teamId.color && (
+                                    <span
+                                      className="inline-block w-2 h-2 rounded-full mr-1.5 align-middle"
+                                      style={{ backgroundColor: entry.teamId.color }}
+                                    />
+                                  )}
+                                  {entry.teamId.name}
+                                </p>
+                              )}
                             </div>
                             <Icon size={16}
                               className={`${ms.color} opacity-50 group-hover:opacity-100 transition-opacity flex-shrink-0`} />

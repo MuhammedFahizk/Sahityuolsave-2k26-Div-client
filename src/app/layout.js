@@ -1,4 +1,4 @@
-import { Outfit, Luckiest_Guy, Leckerli_One } from "next/font/google";
+import { Outfit, Luckiest_Guy, Leckerli_One, Pixelify_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import NavigationHandler from "@/components/NavigationHandler";
@@ -21,6 +21,31 @@ const leckerliOne = Leckerli_One({
   variable: "--font-leckerli",
   subsets: ["latin"],
   weight: "400",
+});
+// .pixelify-sans-<uniquifier> {
+//   font-family: "Pixelify Sans", sans-serif;
+//   font-optical-sizing: auto;
+//   font-weight: <weight>;
+//   font-style: normal;
+// }
+
+const  pixelifySans  =  Pixelify_Sans({
+  variable: "--font-pixelify",
+  subsets: ["latin"],
+  weight: "400",
+});
+
+// .pixelify-sans-<uniquifier> {
+//   font-family: "Pixelify Sans", sans-serif;
+//   font-optical-sizing: auto;
+//   font-weight: <weight>;
+//   font-style: normal;
+// }
+
+const pixelifySansBold = Pixelify_Sans({  
+  variable: "--font-pixelify-bold",
+  subsets: ["latin"],
+  weight: "700",
 });
 
 export const metadata = {
@@ -47,6 +72,8 @@ export default function RootLayout({ children }) {
         ${outfit.variable}
         ${luckiestGuy.variable}
         ${leckerliOne.variable}
+        ${pixelifySans.variable}
+        ${pixelifySansBold.variable}
         h-full
       `}
       suppressHydrationWarning

@@ -104,13 +104,13 @@ export default function GalleryPage() {
     <div className="min-h-screen  text-white">
 
       {/* ── Header ── */}
-      <div className="px-4 pt-10 pb-5">
+      <div className="px-4 pt-20 pb-5">
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0  }}
           transition={{ duration: 0.3 }}
         >
-          <h1 className="text-2xl font-bold tracking-tight">Gallery</h1>
+          <h1 className="text-2xl font-display  tracking-tight">Gallery</h1>
           <p className="text-sm text-white/30 mt-0.5">
             {loading
               ? "Loading…"

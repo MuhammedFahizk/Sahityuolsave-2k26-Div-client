@@ -16,7 +16,7 @@ const emptyTemplate = {
   resultNumber: { x: 100, y: 150, fontSize: 48, color: '#ffffff', fontWeight: 'bold',   textAlign: 'center' },
   categoryName: { x: 100, y: 220, fontSize: 32, color: '#ffffff', fontWeight: 'normal', textAlign: 'center' },
   group:        { x: 100, y: 280, fontSize: 24, color: '#dddddd', fontWeight: 'normal', textAlign: 'center' },
-  winners:      { startX: 100, startY: 380, gapY: 60, fontSize: 28, color: '#FFD700', textAlign: 'center' },
+  winners:      { startX: 100, startY: 380, gapY: 80, lineGap: 28, fontSize: 28, teamFontSize: 20, color: '#FFD700', teamColor: '#ffffff', textAlign: 'center' },
 };
 
 const sampleResult = {
@@ -72,22 +72,37 @@ function FieldSection({ title, field, isWinners, data, onUpdate }) {
           />
         </div>
 
-        {/* gapY — winners only */}
+        {/* gapY — winners only: space between each winner slot */}
         {isWinners && (
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Gap Between Rows (px)</label>
+            <label className="block text-xs text-gray-500 mb-1">Gap Between Winners (px)</label>
             <input
               type="number"
-              value={data.gapY ?? 60}
+              value={data.gapY ?? 80}
               onChange={e => upd('gapY', parseInt(e.target.value) || 0)}
               className="w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:border-blue-400"
             />
           </div>
         )}
 
-        {/* Font Size */}
+        {/* lineGap — winners only: space between name and team within one slot */}
+        {isWinners && (
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Name → Team Gap (px)</label>
+            <input
+              type="number"
+              value={data.lineGap ?? 28}
+              onChange={e => upd('lineGap', parseInt(e.target.value) || 0)}
+              className="w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:border-blue-400"
+            />
+          </div>
+        )}
+
+        {/* Participant Font Size */}
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Font Size</label>
+          <label className="block text-xs text-gray-500 mb-1">
+            {isWinners ? 'Name Font Size' : 'Font Size'}
+          </label>
           <input
             type="number"
             value={data.fontSize ?? 24}
@@ -96,9 +111,24 @@ function FieldSection({ title, field, isWinners, data, onUpdate }) {
           />
         </div>
 
-        {/* Color */}
+        {/* Team Font Size — winners only */}
+        {isWinners && (
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Team Font Size</label>
+            <input
+              type="number"
+              value={data.teamFontSize ?? 20}
+              onChange={e => upd('teamFontSize', parseInt(e.target.value) || 1)}
+              className="w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:border-blue-400"
+            />
+          </div>
+        )}
+
+        {/* Participant Color */}
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Font Color</label>
+          <label className="block text-xs text-gray-500 mb-1">
+            {isWinners ? 'Name Color' : 'Font Color'}
+          </label>
           <input
             type="color"
             value={data.color || '#000000'}
@@ -106,6 +136,19 @@ function FieldSection({ title, field, isWinners, data, onUpdate }) {
             className="w-full h-10 rounded-lg border cursor-pointer"
           />
         </div>
+
+        {/* Team Color — winners only */}
+        {isWinners && (
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Team Color</label>
+            <input
+              type="color"
+              value={data.teamColor || '#ffffff'}
+              onChange={e => upd('teamColor', e.target.value)}
+              className="w-full h-10 rounded-lg border cursor-pointer"
+            />
+          </div>
+        )}
 
         {/* Font Weight — non-winners only */}
         {!isWinners && (
@@ -138,15 +181,56 @@ function FieldSection({ title, field, isWinners, data, onUpdate }) {
       </div>
 
       {isWinners && (
-        <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+        <div className="mt-3 p-3 bg-blue-50 rounded-lg space-y-1">
           <p className="text-xs text-blue-600">
-            💡 Each winner row is drawn {data.gapY || 60}px below the previous.
-            Text baseline sits <strong>at</strong> the Y coordinate — same as the public poster.
+            💡 Each winner slot is <strong>{data.gapY || 80}px</strong> apart (Start Y → Start Y).
+            Within each slot: participant name drawn at Y, team name drawn <strong>{data.lineGap || 28}px</strong> below.
+          </p>
+          <p className="text-xs text-blue-500">
+            Layout per slot: <code className="bg-blue-100 px-1 rounded">Name</code> ↓{data.lineGap || 28}px <code className="bg-blue-100 px-1 rounded">Team</code>
           </p>
         </div>
       )}
     </div>
   );
+}
+
+// ── Shared canvas draw helper (used by both admin preview and public page) ─────
+
+export function resolveXShared(align, x, canvasWidth) {
+  if (align === 'center') return canvasWidth / 2;
+  if (align === 'right')  return canvasWidth - x;
+  return x;
+}
+
+export function drawWinnersOnCtx(ctx, w, entries, canvasWidth) {
+  if (!w || !entries?.length) return;
+  const sorted = [...entries].sort((a, b) => a.position - b.position);
+  sorted.forEach((winner, i) => {
+    const slotY = w.startY + i * (w.gapY || 80);
+    const nameX = resolveXShared(w.textAlign, w.startX, canvasWidth);
+
+    // Participant name line
+    ctx.save();
+    ctx.font         = `bold ${w.fontSize || 28}px "Poppins", "Segoe UI", system-ui`;
+    ctx.fillStyle    = w.color || '#FFD700';
+    ctx.textAlign    = w.textAlign || 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(`${winner.position}. ${winner.participantName}`, nameX, slotY);
+    ctx.restore();
+
+    // Team name line
+    const teamName = winner.teamId?.name || winner.team || '';
+    if (teamName) {
+      ctx.save();
+      ctx.font         = `normal ${w.teamFontSize || 20}px "Poppins", "Segoe UI", system-ui`;
+      ctx.fillStyle    = w.teamColor || '#ffffff';
+      ctx.textAlign    = w.textAlign || 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(teamName, nameX, slotY + (w.lineGap || 28));
+      ctx.restore();
+    }
+  });
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
@@ -181,7 +265,6 @@ export default function AdminTemplatesPage() {
   const showToast = (message, type = 'success') => setToast({ message, type });
 
   // ── Update handler passed to FieldSection ──
-  // field = 'resultNumber' | 'categoryName' | 'group' | 'winners'
   const handleFieldUpdate = useCallback((field, key, value) => {
     setTemplate(prev => ({
       ...prev,
@@ -219,22 +302,8 @@ export default function AdminTemplatesPage() {
       draw(template.categoryName, sampleResult.categoryName);
       draw(template.group,        sampleResult.group);
 
-      if (template.winners) {
-        const w = template.winners;
-        sampleResult.entries.forEach((winner, i) => {
-          ctx.save();
-          ctx.font         = `${w.fontSize}px "Poppins", "Segoe UI", system-ui`;
-          ctx.fillStyle    = w.color;
-          ctx.textAlign    = w.textAlign;
-          ctx.textBaseline = 'alphabetic';
-          ctx.fillText(
-            `${winner.position}. ${winner.participantName}`,
-            resolveX(w.textAlign, w.startX, W),
-            w.startY + i * (w.gapY || 60)
-          );
-          ctx.restore();
-        });
-      }
+      // Draw winners: name + team stacked
+      drawWinnersOnCtx(ctx, template.winners, sampleResult.entries, W);
     };
 
     img.src = template.imagePath;
@@ -486,7 +555,7 @@ export default function AdminTemplatesPage() {
                   </div>
                 </div>
 
-                {/* Field sections — each is a stable component outside, no remount on keystroke */}
+                {/* Field sections */}
                 <FieldSection
                   title="Result Number Position"
                   field="resultNumber"
@@ -535,7 +604,12 @@ export default function AdminTemplatesPage() {
                       <p>📊 Result Number: {sampleResult.resultNumber}</p>
                       <p>🏷️ Category: {sampleResult.categoryName}</p>
                       <p>👥 Group: {sampleResult.group}</p>
-                      <p>🏆 Winners: {sampleResult.entries.map(e => `${e.position}. ${e.participantName}`).join(', ')}</p>
+                      <p>🏆 Winners:</p>
+                      {sampleResult.entries.map(e => (
+                        <p key={e.position} className="pl-4">
+                          {e.position}. {e.participantName} <span className="text-gray-400">({e.teamId.name})</span>
+                        </p>
+                      ))}
                     </div>
                   </div>
 
