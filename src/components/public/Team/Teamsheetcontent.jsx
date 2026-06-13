@@ -100,9 +100,9 @@ function ResultCard({ result, teamId, index }) {
                 {result.group}
               </span>
             )}
-            <span className="text-[11px] font-bold text-white/50 tabular-nums">
+            {/* <span className="text-[11px] font-bold text-white/50 tabular-nums">
               {totalPoints} pts
-            </span>
+            </span> */}
           </div>
         </div>
 
@@ -144,12 +144,12 @@ function ResultCard({ result, teamId, index }) {
                 </div>
                 
                 {/* Points */}
-                <div className="flex-shrink-0 text-right">
+                {/* <div className="flex-shrink-0 text-right">
                   <span className={`text-base font-bold ${ps.text} tabular-nums`}>
                     {entry.points}
                   </span>
                   <span className="text-[9px] font-normal text-white/25 ml-0.5">pts</span>
-                </div>
+                </div> */}
               </motion.div>
             );
           })}
@@ -163,7 +163,7 @@ function ResultCard({ result, teamId, index }) {
             <div className="flex items-center gap-1.5">
               <span className="text-white/40">{bestEntry.participantName}</span>
               <span className={`font-semibold ${positionStyle(bestEntry.position).text}`}>
-                {posLabel(bestEntry.position)} · {bestEntry.points} pts
+                {posLabel(bestEntry.position)} 
               </span>
             </div>
           </div>
@@ -267,9 +267,9 @@ export default function TeamSheetContent({ team, rank, totalPoints ,  onViewDeta
                   <RankIcon size={10} />
                   Rank #{rank}
                 </span>
-                <span className="text-[11px] font-semibold text-white/60">
+                {/* <span className="text-[11px] font-semibold text-white/60">
                   {totalPoints.toLocaleString()} total pts
-                </span>
+                </span> */}
               </div>
             </div>
           </div>

@@ -66,12 +66,12 @@ function EntryRow({ entry, index }) {
       </div>
       
       {/* Points - Larger for readability */}
-      <div className="flex flex-col items-end flex-shrink-0">
+      {/* <div className="flex flex-col items-end flex-shrink-0">
         <span className="text-[14px] font-bold text-white/60 tabular-nums">
           {entry.points}
         </span>
         <span className="text-[8px] font-normal text-white/25 -mt-0.5">pts</span>
-      </div>
+      </div> */}
     </div>
   );
 }
