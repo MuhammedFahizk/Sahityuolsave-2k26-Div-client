@@ -40,6 +40,7 @@
 @theme inline {
   --font-display:         var(--font-pixelify-bold);
   --font-display-cursive: var(--font-leckerli);
+  --font-e-poster:      var(--font-metrophobic);
 }
 
 /* ── Animations ── */

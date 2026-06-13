@@ -1,4 +1,4 @@
-import { Outfit, Luckiest_Guy, Leckerli_One, Pixelify_Sans } from "next/font/google";
+import { Outfit, Luckiest_Guy, Leckerli_One, Pixelify_Sans, Metrophobic } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import NavigationHandler from "@/components/NavigationHandler";
@@ -31,6 +31,19 @@ const leckerliOne = Leckerli_One({
 
 const  pixelifySans  =  Pixelify_Sans({
   variable: "--font-pixelify",
+  subsets: ["latin"],
+  weight: "400",
+});
+
+
+// .metrophobic-regular {
+//   font-family: "Metrophobic", sans-serif;
+//   font-weight: 400;
+//   font-style: normal;
+// }
+
+const  metrophobicRegular  =  Metrophobic({
+  variable: "--font-metrophobic",
   subsets: ["latin"],
   weight: "400",
 });
