@@ -207,7 +207,7 @@ function AIImagePanel({ isInView, imgY }) {
             Sahityolsave 2026's theme
           </p>
           <p className="text-sm font-semibold text-white/75 leading-snug mb-4">
-            AI എഴുതുന്നത് മനുഷ്യൻ വായിക്കുന്നത്
+          AI എഴുതുമ്പോൾ മനുഷ്യൻ വായിക്കുന്നത്
           </p>
           <p className="text-xs text-white/40 mb-4 leading-relaxed">
             "What AI writes, humans read" — exploring the boundary between machine intelligence and human expression.
@@ -283,7 +283,7 @@ export default function AboutSection() {
     <section
       ref={sectionRef}
       className="relative overflow-hidden"
-      style={{ background: NAVY }}
+      
     >
       {/* circuit dot grid */}
       <CircuitDots />
