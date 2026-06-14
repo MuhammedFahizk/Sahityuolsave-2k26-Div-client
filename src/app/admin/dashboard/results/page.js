@@ -6,6 +6,9 @@ import Topbar from '@/components/admin/Topbar';
 import Spinner from '@/components/shared/Spinner';
 import Toast from '@/components/shared/Toast';
 import ConfirmModal from '@/components/admin/ConfirmModal';
+import JsonImportModal from '@/components/admin/JsonImportModal';
+import { ImportIcon } from 'lucide-react';
+import { BiImport } from 'react-icons/bi';
 
 // ── Empty form ──
 const emptyEntry = { position: '', participantName: '', teamId: '', points: '', grade: '' };
@@ -45,7 +48,15 @@ export default function AdminResultsPage() {
   const [search, setSearch] = useState('');
   const [uploading, setUploading] = useState(false);
   const [resultPreview, setResultPreview] = useState('');
+  const [showJsonImport, setShowJsonImport] = useState(false);
 
+  // Add this function to handle JSON import
+  const handleJsonImport = (formData) => {
+    setEditingId(null);
+    setForm(formData);
+    setShowForm(true);
+    showToast('JSON data imported successfully!');
+  };
 
   // ── Fetch results + teams ──
   const fetchData = useCallback(async () => {
@@ -260,14 +271,39 @@ export default function AdminResultsPage() {
             ))}
           </div>
 
-          {/* Add button */}
-          <button onClick={openAdd}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl
-              text-white text-[12px] font-medium whitespace-nowrap"
-            style={{ background: 'linear-gradient(135deg, #0F4C81, #1A6BAD)' }}>
-            + Add Result
-          </button>
+          {/* Floating Action Bar - Always visible at bottom */}
+          <div className="fixed bottom-6 right-6 z-40 flex gap-3">
+            <button
+              onClick={openAdd}
+              className="flex items-center gap-2 px-5 py-3 rounded-full
+      text-white text-[13px] font-medium whitespace-nowrap shadow-lg
+      hover:shadow-xl transition-all transform hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #0F4C81, #1A6BAD)' }}
+            >
+              <span className="text-lg">+</span> Add Result
+            </button>
+            <button
+              onClick={() => setShowJsonImport(true)}
+              className="flex items-center gap-2 px-5 py-3 rounded-full
+      text-white text-[13px] font-medium whitespace-nowrap shadow-lg
+      hover:shadow-xl transition-all transform hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #9333EA, #7C3AED)' }}
+            >
+              <BiImport className="text-lg" /> Import JSON
+            </button>
+          </div>
+
+          {/* // Add the modal at the bottom (before the closing </>) */}
+          {showJsonImport && (
+            <JsonImportModal
+              isOpen={showJsonImport}
+              onClose={() => setShowJsonImport(false)}
+              onImport={handleJsonImport}
+              teams={teams}
+            />
+          )}
         </div>
+
 
         {/* ── Results list ── */}
         {loading ? (
@@ -391,270 +427,276 @@ export default function AdminResultsPage() {
             ))}
           </div>
         )}
-      </div>
+      </div >
 
       {/* ══ ADD / EDIT DRAWER ══ */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/40 z-40 flex justify-end">
-          <div className="w-full max-w-lg bg-white h-full flex flex-col shadow-2xl">
+      {
+        showForm && (
+          <div className="fixed inset-0 bg-black/40 z-40 flex justify-end">
+            <div className="w-full max-w-lg bg-white h-full flex flex-col shadow-2xl">
 
-            {/* Drawer header */}
-            <div className="flex items-center justify-between px-6 py-4
+              {/* Drawer header */}
+              <div className="flex items-center justify-between px-6 py-4
               border-b border-gray-100">
-              <div>
-                <h2 className="text-[14px] font-medium text-gray-800">
-                  {editingId ? 'Edit Result' : 'Add New Result'}
-                </h2>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  Fill details and add participant entries
-                </p>
-              </div>
-              <button onClick={closeForm}
-                className="w-7 h-7 rounded-lg bg-gray-100 flex items-center
-                  justify-center text-gray-400 hover:bg-gray-200 text-sm">
-                ✕
-              </button>
-            </div>
-
-            {/* Drawer body */}
-            <div className="flex-1 overflow-auto px-6 py-5 space-y-5">
-
-              {/* Result Number + Category */}
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-medium text-gray-400
+                  <h2 className="text-[14px] font-medium text-gray-800">
+                    {editingId ? 'Edit Result' : 'Add New Result'}
+                  </h2>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    Fill details and add participant entries
+                  </p>
+                </div>
+                <button onClick={closeForm}
+                  className="w-7 h-7 rounded-lg bg-gray-100 flex items-center
+                  justify-center text-gray-400 hover:bg-gray-200 text-sm">
+                  ✕
+                </button>
+              </div>
+
+              {/* Drawer body */}
+              <div className="flex-1 overflow-auto px-6 py-5 space-y-5">
+
+                {/* Result Number + Category */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-medium text-gray-400
                     uppercase tracking-wider mb-1.5 block">
-                    Result Number *
-                  </label>
-                  <input type="number"
-                    value={form.resultNumber}
-                    onChange={e => setForm(f => ({ ...f, resultNumber: e.target.value }))}
-                    placeholder="e.g. 2"
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200
+                      Result Number *
+                    </label>
+                    <input type="number"
+                      value={form.resultNumber}
+                      onChange={e => setForm(f => ({ ...f, resultNumber: e.target.value }))}
+                      placeholder="e.g. 2"
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200
                       text-[13px] focus:outline-none focus:border-[#0F4C81]
                       focus:ring-2 focus:ring-[#0F4C81]/10 transition-all"
-                  />
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-medium text-gray-400
+                    uppercase tracking-wider mb-1.5 block">
+                      Group
+                    </label>
+                    <select
+                      value={form.group}
+                      onChange={e => setForm(f => ({ ...f, group: e.target.value }))}
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200
+                      text-[13px] focus:outline-none focus:border-[#0F4C81]
+                      transition-all bg-white">
+                      <option value="">Select group</option>
+                      {GROUP_OPTIONS.map(g => (
+                        <option key={g} value={g}>{g}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div>
                   <label className="text-[11px] font-medium text-gray-400
-                    uppercase tracking-wider mb-1.5 block">
-                    Group
-                  </label>
-                  <select
-                    value={form.group}
-                    onChange={e => setForm(f => ({ ...f, group: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200
-                      text-[13px] focus:outline-none focus:border-[#0F4C81]
-                      transition-all bg-white">
-                    <option value="">Select group</option>
-                    {GROUP_OPTIONS.map(g => (
-                      <option key={g} value={g}>{g}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="text-[11px] font-medium text-gray-400
                                    uppercase tracking-wider mb-2 block">
-                  Result Image (optional)
-                </label>
-                <div className="flex items-center gap-4">
-                  {resultPreview ? (
-                    <img src={resultPreview} alt="logo"
-                      className="w-14 h-14 rounded-xl object-cover
+                    Result Image (optional)
+                  </label>
+                  <div className="flex items-center gap-4">
+                    {resultPreview ? (
+                      <img src={resultPreview} alt="logo"
+                        className="w-14 h-14 rounded-xl object-cover
                                          border border-gray-100" />
-                  ) : (
-                    <div className="w-14 h-14 rounded-xl bg-gray-50
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-gray-50
                                        border border-dashed border-gray-200 flex items-center
                                        justify-center text-gray-300 text-xs">
-                      Result Image
-                    </div>
-                  )}
-                  <label className="flex items-center gap-2 px-4 py-2
+                        Result Image
+                      </div>
+                    )}
+                    <label className="flex items-center gap-2 px-4 py-2
                                      rounded-xl bg-blue-50 border border-blue-100 text-[12px]
                                      text-[#0F4C81] cursor-pointer hover:bg-blue-100 transition-all">
-                    {uploading ? <Spinner size="sm" /> : null}
-                    {uploading ? 'Uploading...' : 'Upload Image'}
-                    <input type="file" accept="image/*" className="hidden"
-                      onChange={handleResultImageUpload} />
-                  </label>
+                      {uploading ? <Spinner size="sm" /> : null}
+                      {uploading ? 'Uploading...' : 'Upload Image'}
+                      <input type="file" accept="image/*" className="hidden"
+                        onChange={handleResultImageUpload} />
+                    </label>
+                  </div>
                 </div>
-              </div>
-              {/* Category Name */}
-              <div>
-                <label className="text-[11px] font-medium text-gray-400
+                {/* Category Name */}
+                <div>
+                  <label className="text-[11px] font-medium text-gray-400
                   uppercase tracking-wider mb-1.5 block">
-                  Category Name *
-                </label>
-                <input type="text"
-                  value={form.categoryName}
-                  onChange={e => setForm(f => ({ ...f, categoryName: e.target.value }))}
-                  placeholder="e.g. Pencil Drawing, Story Writing"
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200
+                    Category Name *
+                  </label>
+                  <input type="text"
+                    value={form.categoryName}
+                    onChange={e => setForm(f => ({ ...f, categoryName: e.target.value }))}
+                    placeholder="e.g. Pencil Drawing, Story Writing"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200
                     text-[13px] focus:outline-none focus:border-[#0F4C81]
                     focus:ring-2 focus:ring-[#0F4C81]/10 transition-all"
-                />
-              </div>
+                  />
+                </div>
 
-              {/* Entries */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-[11px] font-medium text-gray-400
+                {/* Entries */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-[11px] font-medium text-gray-400
                     uppercase tracking-wider">
-                    Participant Entries
-                  </label>
-                  <button onClick={addEntry}
-                    className="text-[11px] text-[#0F4C81] bg-blue-50
+                      Participant Entries
+                    </label>
+                    <button onClick={addEntry}
+                      className="text-[11px] text-[#0F4C81] bg-blue-50
                       border border-blue-100 px-3 py-1 rounded-lg
                       hover:bg-blue-100 transition-all">
-                    + Add Entry
-                  </button>
-                </div>
+                      + Add Entry
+                    </button>
+                  </div>
 
-                <div className="space-y-3">
-                  {form.entries.map((entry, i) => (
-                    <div key={i}
-                      className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                  <div className="space-y-3">
+                    {form.entries.map((entry, i) => (
+                      <div key={i}
+                        className="bg-gray-50 rounded-xl p-3 border border-gray-100">
 
-                      {/* Entry header */}
-                      <div className="flex items-center justify-between mb-2.5">
-                        <span className="text-[10px] font-medium text-gray-400
+                        {/* Entry header */}
+                        <div className="flex items-center justify-between mb-2.5">
+                          <span className="text-[10px] font-medium text-gray-400
                           uppercase tracking-wider">
-                          Entry {i + 1}
-                        </span>
-                        {form.entries.length > 1 && (
-                          <button onClick={() => removeEntry(i)}
-                            className="text-[10px] text-red-400
+                            Entry {i + 1}
+                          </span>
+                          {form.entries.length > 1 && (
+                            <button onClick={() => removeEntry(i)}
+                              className="text-[10px] text-red-400
                               hover:text-red-600 transition-all">
-                            Remove
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Position + Points */}
-                      <div className="grid grid-cols-2 gap-2 mb-2">
-                        <div>
-                          <label className="text-[10px] text-gray-400 mb-1 block">
-                            Position *
-                          </label>
-                          <input type="number"
-                            value={entry.position}
-                            onChange={e => setEntry(i, 'position', e.target.value)}
-                            placeholder="1"
-                            className="w-full px-3 py-2 rounded-lg border border-gray-200
-                              text-[12px] bg-white focus:outline-none
-                              focus:border-[#0F4C81] transition-all"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-gray-400 mb-1 block">
-                            Points
-                          </label>
-                          <input type="number"
-                            value={entry.points}
-                            onChange={e => setEntry(i, 'points', e.target.value)}
-                            placeholder="0"
-                            className="w-full px-3 py-2 rounded-lg border border-gray-200
-                              text-[12px] bg-white focus:outline-none
-                              focus:border-[#0F4C81] transition-all"
-                          />
+                              Remove
+                            </button>
+                          )}
                         </div>
 
+                        {/* Position + Points */}
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                          <div>
+                            <label className="text-[10px] text-gray-400 mb-1 block">
+                              Position *
+                            </label>
+                            <input type="number"
+                              value={entry.position}
+                              onChange={e => setEntry(i, 'position', e.target.value)}
+                              placeholder="1"
+                              className="w-full px-3 py-2 rounded-lg border border-gray-200
+                              text-[12px] bg-white focus:outline-none
+                              focus:border-[#0F4C81] transition-all"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-gray-400 mb-1 block">
+                              Points
+                            </label>
+                            <input type="number"
+                              value={entry.points}
+                              onChange={e => setEntry(i, 'points', e.target.value)}
+                              placeholder="0"
+                              className="w-full px-3 py-2 rounded-lg border border-gray-200
+                              text-[12px] bg-white focus:outline-none
+                              focus:border-[#0F4C81] transition-all"
+                            />
+                          </div>
 
-                      </div>
 
-                      {/* Participant Name */}
-                      <div className="mb-2 grid grid-cols-3 gap-2">
-                        <div className='col-span-2'>  <label className="text-[10px] text-gray-400 mb-1 block">
-                          Participant Name *
-                        </label>
-                          <input type="text"
-                            value={entry.participantName}
-                            onChange={e => setEntry(i, 'participantName', e.target.value)}
-                            placeholder="e.g. Afsal T"
-                            className="w-full px-3 py-2 rounded-lg border border-gray-200
+                        </div>
+
+                        {/* Participant Name */}
+                        <div className="mb-2 grid grid-cols-3 gap-2">
+                          <div className='col-span-2'>  <label className="text-[10px] text-gray-400 mb-1 block">
+                            Participant Name *
+                          </label>
+                            <input type="text"
+                              value={entry.participantName}
+                              onChange={e => setEntry(i, 'participantName', e.target.value)}
+                              placeholder="e.g. Afsal T"
+                              className="w-full px-3 py-2 rounded-lg border border-gray-200
                             text-[12px] bg-white focus:outline-none
                             focus:border-[#0F4C81] transition-all"
-                          /></div>
+                            /></div>
 
-                        <div>
-                          <label className="text-[10px] text-gray-400 mb-1 block">
-                            Grade
-                          </label>
-                          <input type="text"
-                            value={entry.grade}
-                            onChange={e => setEntry(i, 'grade', e.target.value.toUpperCase())}
-                            placeholder="A"
-                            className="w-full px-3 py-2 rounded-lg border border-gray-200
+                          <div>
+                            <label className="text-[10px] text-gray-400 mb-1 block">
+                              Grade
+                            </label>
+                            <input type="text"
+                              value={entry.grade}
+                              onChange={e => setEntry(i, 'grade', e.target.value.toUpperCase())}
+                              placeholder="A"
+                              className="w-full px-3 py-2 rounded-lg border border-gray-200
                               text-[12px] bg-white focus:outline-none
                               focus:border-[#0F4C81] uppercase transition-all"
-                          />
+                            />
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Team dropdown */}
-                      <div>
-                        <label className="text-[10px] text-gray-400 mb-1 block">
-                          Team *
-                        </label>
-                        <select
-                          value={entry.teamId}
-                          onChange={e => setEntry(i, 'teamId', e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg border border-gray-200
+                        {/* Team dropdown */}
+                        <div>
+                          <label className="text-[10px] text-gray-400 mb-1 block">
+                            Team *
+                          </label>
+                          <select
+                            value={entry.teamId}
+                            onChange={e => setEntry(i, 'teamId', e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200
                             text-[12px] bg-white focus:outline-none
                             focus:border-[#0F4C81] transition-all">
-                          <option value="">Select team</option>
-                          {teams
-                            .filter(t => {
-                              const isCampus = form.group?.toLowerCase() === 'campus';
-                              return isCampus ? t.teamType === 'campus' : t.teamType !== 'campus';
-                            })
-                            .map(team => (
-                            <option key={team._id} value={team._id}>
-                              {team.name}
-                            </option>
-                          ))}
-                        </select>
+                            <option value="">Select team</option>
+                            {teams
+                              .filter(t => {
+                                const isCampus = form.group?.toLowerCase() === 'campus';
+                                return isCampus ? t.teamType === 'campus' : t.teamType !== 'campus';
+                              })
+                              .map(team => (
+                                <option key={team._id} value={team._id}>
+                                  {team.name}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Drawer footer */}
-            <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
-              <button onClick={closeForm}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200
+              {/* Drawer footer */}
+              <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
+                <button onClick={closeForm}
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200
                   text-[12px] text-gray-500 hover:bg-gray-50 transition-all">
-                Cancel
-              </button>
-              <button onClick={handleSubmit} disabled={saving}
-                className="flex-1 py-2.5 rounded-xl text-white text-[12px]
+                  Cancel
+                </button>
+                <button onClick={handleSubmit} disabled={saving}
+                  className="flex-1 py-2.5 rounded-xl text-white text-[12px]
                   font-medium flex items-center justify-center gap-2
                   disabled:opacity-60 transition-all"
-                style={{ background: 'linear-gradient(135deg, #0F4C81, #1A6BAD)' }}>
-                {saving ? <Spinner size="sm" /> : null}
-                {saving ? 'Saving...' : editingId ? 'Update Result' : 'Create Result'}
-              </button>
+                  style={{ background: 'linear-gradient(135deg, #0F4C81, #1A6BAD)' }}>
+                  {saving ? <Spinner size="sm" /> : null}
+                  {saving ? 'Saving...' : editingId ? 'Update Result' : 'Create Result'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* ── Confirm delete ── */}
-      {confirm && (
-        <ConfirmModal
-          message={`Delete "${confirm.name}"? This cannot be undone.`}
-          onConfirm={handleDelete}
-          onCancel={() => setConfirm(null)}
-        />
-      )}
+      {
+        confirm && (
+          <ConfirmModal
+            message={`Delete "${confirm.name}"? This cannot be undone.`}
+            onConfirm={handleDelete}
+            onCancel={() => setConfirm(null)}
+          />
+        )
+      }
 
       {/* ── Toast ── */}
-      {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
-      )}
+      {
+        toast && (
+          <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+        )
+      }
     </>
   );
 }
